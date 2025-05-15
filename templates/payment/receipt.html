@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}支付凭证 - 租房系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .receipt {
+        border: 1px solid #ddd;
+        padding: 2rem;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .receipt-header {
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+    .receipt-footer {
+        border-top: 2px solid #f8f9fa;
+        padding-top: 1rem;
+        margin-top: 2rem;
+    }
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 5rem;
+        opacity: 0.05;
+        color: #000;
+        pointer-events: none;
+        z-index: 1;
+    }
+    @media print {
+        .no-print {
+            display: none;
+        }
+        body {
+            background-color: white;
+        }
+        .receipt {
+            box-shadow: none;
+            border: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container receipt-container my-5">
+    <div class="no-print mb-4">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> 返回
+        </a>
+        <button onclick="window.print()" class="btn btn-primary ms-2">
+            <i class="fas fa-print"></i> 打印凭证
+        </button>
+    </div>
+    
+    <div class="receipt position-relative">
+        <div class="watermark">
+            {% if payment.status == 'paid' %}
+            已支付
+            {% elif payment.status == 'refunded' %}
+            已退款
+            {% endif %}
+        </div>
+        
+        <div class="receipt-header text-center">
+            <h2>支付凭证</h2>
+            <p class="text-muted">交易编号: {{ payment.transaction_id }}</p>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>支付信息</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th>支付项目:</th>
+                        <td>
+                            {% if payment.payment_type == 'rent' %}
+                            租金
+                            {% elif payment.payment_type == 'deposit' %}
+                            押金
+                            {% else %}
+                            {{ payment.payment_type }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>支付金额:</th>
+                        <td>¥{{ payment.amount }}</td>
+                    </tr>
+                    <tr>
+                        <th>支付状态:</th>
+                        <td>
+                            {% if payment.status == 'paid' %}
+                            <span class="badge bg-success">已支付</span>
+                            {% elif payment.status == 'refunded' %}
+                            <span class="badge bg-info">已退款</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>支付方式:</th>
+                        <td>{{ payment.payment_method }}</td>
+                    </tr>
+                    <tr>
+                        <th>支付日期:</th>
+                        <td>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>租约信息</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th>房源:</th>
+                        <td>{{ property.title }}</td>
+                    </tr>
+                    <tr>
+                        <th>地址:</th>
+                        <td>{{ property.city }} {{ property.district }} {{ property.address }}</td>
+                    </tr>
+                    <tr>
+                        <th>租期:</th>
+                        <td>{{ lease.start_date.strftime('%Y-%m-%d') }} 至 {{ lease.end_date.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    <tr>
+                        <th>月租金:</th>
+                        <td>¥{{ lease.monthly_rent }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>付款方信息</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th>姓名:</th>
+                        <td>{{ tenant.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>联系电话:</th>
+                        <td>{{ tenant.phone or '未提供' }}</td>
+                    </tr>
+                    <tr>
+                        <th>电子邮箱:</th>
+                        <td>{{ tenant.email }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5>收款方信息</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th>姓名:</th>
+                        <td>{{ landlord.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>联系电话:</th>
+                        <td>{{ landlord.phone or '未提供' }}</td>
+                    </tr>
+                    <tr>
+                        <th>电子邮箱:</th>
+                        <td>{{ landlord.email }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="receipt-footer text-center">
+            <p class="mb-0">本凭证由租房系统自动生成，感谢您的使用</p>
+            <p class="text-muted">生成时间: {{ now.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

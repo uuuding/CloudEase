@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}编辑个人资料 - 租房系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">个人资料</h1>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile.update_profile') }}" enctype="multipart/form-data">
+                        <div class="row mb-3">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar) if current_user.avatar else url_for('static', filename='img/default_avatar.jpg') }}" 
+                                         class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" alt="用户头像">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="avatar" class="form-label">更换头像</label>
+                                    <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">用户名</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">电子邮箱</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">联系电话</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">用户角色</label>
+                                    <div>
+                                        {% if current_user.is_landlord() %}
+                                        <span class="badge bg-primary">房东</span>
+                                        {% elif current_user.is_tenant() %}
+                                        <span class="badge bg-info">租客</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">保存更改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">修改密码</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile.change_password') }}">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">当前密码</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">新密码</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">确认新密码</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">更改密码</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

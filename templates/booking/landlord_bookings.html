@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}预约管理 - 租房系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">预约管理</h1>
+    
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if status == 'all' or not status %}active{% endif %}" href="{{ url_for('booking.landlord_bookings') }}">全部</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status == 'pending' %}active{% endif %}" href="{{ url_for('booking.landlord_bookings', status='pending') }}">待确认</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status == 'confirmed' %}active{% endif %}" href="{{ url_for('booking.landlord_bookings', status='confirmed') }}">已确认</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status == 'completed' %}active{% endif %}" href="{{ url_for('booking.landlord_bookings', status='completed') }}">已完成</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status == 'rejected' %}active{% endif %}" href="{{ url_for('booking.landlord_bookings', status='rejected') }}">已拒绝</a>
+        </li>
+    </ul>
+    
+    {% if bookings %}
+    <div class="row">
+        {% for booking in bookings %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">预约 #{{ booking.id }}</h5>
+                    <span class="badge {% if booking.status == 'pending' %}bg-warning
+                                       {% elif booking.status == 'confirmed' %}bg-primary
+                                       {% elif booking.status == 'completed' %}bg-success
+                                       {% elif booking.status == 'cancelled' %}bg-secondary
+                                       {% elif booking.status == 'rejected' %}bg-danger{% endif %}">
+                        {% if booking.status == 'pending' %}待确认
+                        {% elif booking.status == 'confirmed' %}已确认
+                        {% elif booking.status == 'completed' %}已完成
+                        {% elif booking.status == 'cancelled' %}已取消
+                        {% elif booking.status == 'rejected' %}已拒绝{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        {% if booking.property.images and booking.property.images|length > 0 %}
+                        <img src="/static/uploads/{{ booking.property.images[0].filename }}" alt="{{ booking.property.title }}" class="rounded me-3" style="width: 100px; height: 80px; object-fit: cover;">
+                        {% else %}
+                        <img src="https://via.placeholder.com/100x80?text=No+Image" alt="No Image" class="rounded me-3">
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-1">{{ booking.property.title }}</h5>
+                            <p class="text-muted mb-0">{{ booking.property.city }} {{ booking.property.district }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><i class="fas fa-calendar me-2"></i> 预约日期：{{ booking.booking_date.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><i class="fas fa-clock me-2"></i> 预约时间：{{ booking.booking_time.strftime('%H:%M') }}</p>
+                            </div>
+                        </div>
+                        <p class="mb-1"><i class="fas fa-user me-2"></i> 租客：{{ booking.tenant.username }}</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i> 联系电话：{{ booking.tenant.phone }}</p>
+                    </div>
+                    
+                    {% if booking.message %}
+                    <div class="mb-3">
+                        <h6>租客留言：</h6>
+                        <p class="mb-0">{{ booking.message }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.status == 'completed' %}
+                    <div class="mb-3">
+                        <h6>看房反馈：</h6>
+                        {% if booking.feedback %}
+                        <p class="mb-0">{{ booking.feedback }}</p>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('booking.add_feedback', booking_id=booking.id) }}">
+                            <div class="mb-3">
+                                <textarea name="feedback" class="form-control" rows="3" placeholder="添加看房反馈..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary">提交反馈</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('property.view_property', property_id=booking.property_id) }}" class="btn btn-outline-primary">查看房源</a>
+                        
+                        <div>
+                            {% if booking.status == 'pending' %}
+                            <a href="{{ url_for('booking.confirm_booking', booking_id=booking.id) }}" class="btn btn-success me-2">确认</a>
+                            <a href="{{ url_for('booking.reject_booking', booking_id=booking.id) }}" class="btn btn-danger" onclick="return confirm('确定要拒绝此预约吗？');">拒绝</a>
+                            {% elif booking.status == 'confirmed' %}
+                            <a href="{{ url_for('booking.complete_booking', booking_id=booking.id) }}" class="btn btn-outline-success">标记为已完成</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p class="mb-0">您还没有任何预约记录。</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

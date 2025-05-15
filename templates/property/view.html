@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.title }} - 云栖CloudEase{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+<style>
+    .swiper {
+        width: 100%;
+        height: 400px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .swiper-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .property-features i {
+        width: 25px;
+        text-align: center;
+        color: var(--primary-color);
+    }
+    .booking-form {
+        position: sticky;
+        top: 20px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        background-color: white;
+    }
+    .amenity-icon {
+        width: 32px;
+        height: 32px;
+        background-color: var(--light-color);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        color: var(--primary-color);
+    }
+    .section-divider {
+        margin: 2rem 0;
+        border-top: 1px solid #eee;
+    }
+    .attraction-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+    .attraction-card:hover {
+        transform: translateY(-5px);
+    }
+    .host-info {
+        background-color: var(--light-color);
+        border-radius: 12px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- 左侧内容 -->
+    <div class="col-lg-8">
+        <!-- 房源图片轮播 -->
+        {% if property.images and property.images|length > 0 %}
+        <div class="swiper mb-4">
+            <div class="swiper-wrapper">
+                {% for image in property.images %}
+                <div class="swiper-slide">
+                    <img src="/static/uploads/{{ image.filename }}" alt="{{ property.title }}">
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+        {% else %}
+        <div class="mb-4">
+            <img src="https://via.placeholder.com/800x400?text=No+Images" class="img-fluid rounded" alt="No Images">
+        </div>
+        {% endif %}
+
+        <!-- 房源标题和基本信息 -->
+        <h1 class="mb-2">{{ property.title }}</h1>
+        <p class="text-muted mb-3">{{ property.city }} {{ property.district }} · {{ property.address }}</p>
+        
+        <!-- 景点推荐和入住指南链接 -->
+        <div class="d-flex mb-4">
+            <a href="{{ url_for('attractions.recommendations', property_id=property.id) }}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-map-marked-alt me-1"></i> 周边景点推荐
+            </a>
+            <a href="{{ url_for('guides.stay_guide', property_id=property.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-book-open me-1"></i> 入住指南
+            </a>
+        </div>
+        
+        <div class="d-flex flex-wrap mb-4">
+            <div class="me-4">
+                <i class="fas fa-yuan-sign"></i> <strong>{{ property.price }}</strong> 元/月
+            </div>
+            <div class="me-4">
+                <i class="fas fa-vector-square"></i> <strong>{{ property.area }}</strong> 平方米
+            </div>
+            <div class="me-4">
+                <i class="fas fa-bed"></i> <strong>{{ property.rooms }}</strong> 室
+            </div>
+            <div class="me-4">
+                <i class="fas fa-bath"></i> <strong>{{ property.bathrooms }}</strong> 卫
+            </div>
+            <div class="me-4">
+                <i class="fas fa-building"></i> <strong>{{ property.floor }}</strong> 层 / 共 {{ property.total_floors }} 层
+            </div>
+        </div>
+
+        <!-- 房源详情 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">房源详情</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ property.description|safe }}</p>
+                
+                <hr>
+                
+                <div class="row property-features">
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-home"></i> 房源类型：
+                        {% if property.property_type == 'apartment' %}公寓
+                        {% elif property.property_type == 'house' %}独栋别墅
+                        {% elif property.property_type == 'townhouse' %}联排别墅
+                        {% elif property.property_type == 'condo' %}公寓楼
+                        {% elif property.property_type == 'studio' %}单间
+                        {% else %}其他{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-couch"></i> 家具配置：
+                        {% if property.furnishing == 'fully_furnished' %}全配
+                        {% elif property.furnishing == 'partially_furnished' %}半配
+                        {% else %}无配{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-calendar"></i> 可入住日期：{{ property.available_from.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-file-contract"></i> 最短租期：{{ property.min_lease_months }} 个月
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-money-bill"></i> 押金：{{ property.deposit if property.deposit else '无' }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-elevator"></i> 电梯：{{ '有' if property.has_elevator else '无' }}
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <i class="fas fa-parking"></i> 停车位：{{ '有' if property.has_parking else '无' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 房东信息 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">房东信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <img src="/static/uploads/{{ property.owner.avatar }}" alt="{{ property.owner.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    <div>
+                        <h5 class="mb-1">{{ property.owner.username }}</h5>
+                        <p class="text-muted mb-0">联系电话：{{ property.owner.phone }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧预约表单 -->
+    <div class="col-lg-4">
+        <div class="card booking-form">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">预约看房</h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.is_authenticated and current_user.is_tenant() %}
+                    <form method="POST" action="{{ url_for('booking.create_booking', property_id=property.id) }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.booking_date.label(class="form-label") }}
+                            {{ form.booking_date(class="form-control", type="date") }}
+                            {% if form.booking_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.booking_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.booking_time.label(class="form-label") }}
+                            {{ form.booking_time(class="form-control", type="time") }}
+                            {% if form.booking_time.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.booking_time.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.message.label(class="form-label") }}
+                            {{ form.message(class="form-control", rows=3) }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </form>
+                {% elif current_user.is_authenticated and current_user.is_landlord() %}
+                    <div class="alert alert-info mb-0">
+                        作为房东，您无法预约看房。
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mb-3">
+                        请先登录租客账号才能预约看房。
+                    </div>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary w-100">登录</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 房源状态 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">房源状态</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>状态</span>
+                    <span class="badge {% if property.status == 'available' %}bg-success{% elif property.status == 'rented' %}bg-danger{% else %}bg-warning{% endif %}">
+                        {% if property.status == 'available' %}可租
+                        {% elif property.status == 'rented' %}已租
+                        {% elif property.status == 'maintenance' %}维护中
+                        {% else %}下架{% endif %}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>发布时间</span>
+                    <span>{{ property.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 周边景点推荐 -->
+<div class="container mt-5">
+    <h3 class="mb-4">周边景点推荐</h3>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card h-100 attraction-card">
+                <img src="https://images.unsplash.com/photo-1565967511849-76a60a516170?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="景点图片">
+                <div class="card-body">
+                    <h5 class="card-title">当地特色景点</h5>
+                    <p class="card-text">距离民宿约2.5公里，步行30分钟或乘坐公交车10分钟可到达。</p>
+                    <a href="#" class="btn btn-sm btn-outline-primary">查看详情</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 attraction-card">
+                <img src="https://images.unsplash.com/photo-1540541338287-41700207dee6?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="景点图片">
+                <div class="card-body">
+                    <h5 class="card-title">文化体验中心</h5>
+                    <p class="card-text">距离民宿约1.8公里，可体验当地特色文化活动和手工艺品制作。</p>
+                    <a href="#" class="btn btn-sm btn-outline-primary">查看详情</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 attraction-card">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="card-img-top" alt="景点图片">
+                <div class="card-body">
+                    <h5 class="card-title">美食街区</h5>
+                    <p class="card-text">距离民宿约1公里，聚集了各种当地特色美食和小吃，是品尝美食的好去处。</p>
+                    <a href="#" class="btn btn-sm btn-outline-primary">查看详情</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 入住指南 -->
+<div class="container mt-5 mb-5">
+    <h3 class="mb-4">入住指南</h3>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">便捷入住</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="amenity-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">自助入住</h6>
+                            <p class="text-muted mb-0">使用密码锁或智能门锁自助入住</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="amenity-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">入住时间</h6>
+                            <p class="text-muted mb-0">下午2:00后可入住，次日上午12:00前退房</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="amenity-icon">
+                            <i class="fas fa-wifi"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">WiFi信息</h6>
+                            <p class="text-muted mb-0">网络名称和密码将在预订确认后提供</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="card-title mb-4">周边设施</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="amenity-icon">
+                                    <i class="fas fa-shopping-basket"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">超市</h6>
+                                    <p class="text-muted mb-0">步行5分钟可达</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="amenity-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">餐厅</h6>
+                                    <p class="text-muted mb-0">周边有多家特色餐厅</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="amenity-icon">
+                                    <i class="fas fa-bus"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">公交站</h6>
+                                    <p class="text-muted mb-0">步行3分钟可达</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="amenity-icon">
+                                    <i class="fas fa-hospital"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">医院</h6>
+                                    <p class="text-muted mb-0">距离1.5公里</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="host-info">
+                <h5 class="mb-3">房东信息</h5>
+                <div class="d-flex align-items-center mb-3">
+                    <img src="https://via.placeholder.com/60" class="rounded-circle me-3" alt="房东头像">
+                    <div>
+                        <h6 class="mb-1">{{ property.user.name }}</h6>
+                        <p class="text-muted mb-0">已认证房东</p>
+                    </div>
+                </div>
+                <p>热情好客的房东，将为您提供舒适的入住体验和当地生活指南。如有任何问题，随时可以联系我。</p>
+                <button class="btn btn-outline-primary w-100">联系房东</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const swiper = new Swiper('.swiper', {
+            loop: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}添加评价 - 租房系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rating-container {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    .rating-container input {
+        display: none;
+    }
+    .rating-container label {
+        cursor: pointer;
+        font-size: 2rem;
+        color: #ddd;
+        padding: 0 0.1rem;
+    }
+    .rating-container label:hover,
+    .rating-container label:hover ~ label,
+    .rating-container input:checked ~ label {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">为房源添加评价</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>{{ property.title }}</h5>
+                        <p class="text-muted">{{ property.city }} {{ property.district }} {{ property.address }}</p>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('review.add_review', property_id=property.id) }}">
+                        <div class="mb-4">
+                            <label class="form-label">您的评分</label>
+                            <div class="rating-container mb-2">
+                                <input type="radio" id="star5" name="rating" value="5" />
+                                <label for="star5" title="5星"><i class="fas fa-star"></i></label>
+                                
+                                <input type="radio" id="star4" name="rating" value="4" />
+                                <label for="star4" title="4星"><i class="fas fa-star"></i></label>
+                                
+                                <input type="radio" id="star3" name="rating" value="3" />
+                                <label for="star3" title="3星"><i class="fas fa-star"></i></label>
+                                
+                                <input type="radio" id="star2" name="rating" value="2" />
+                                <label for="star2" title="2星"><i class="fas fa-star"></i></label>
+                                
+                                <input type="radio" id="star1" name="rating" value="1" />
+                                <label for="star1" title="1星"><i class="fas fa-star"></i></label>
+                            </div>
+                            <div class="form-text">请选择1-5星评分，5星为最满意</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="comment" class="form-label">评价内容</label>
+                            <textarea id="comment" name="comment" class="form-control" rows="5" placeholder="请分享您对这个房源的体验和感受..."></textarea>
+                            <div class="form-text">评价内容至少5个字符</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('property.view_property', property_id=property.id) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> 返回
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> 提交评价
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

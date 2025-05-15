@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}我的租约 - 云栖CloudEase{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">我的租约</h1>
+    
+    {% if lease_data %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for item in lease_data %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ item.property.title }}</h5>
+                    {% if item.lease.status == 'active' %}
+                    <span class="badge bg-success">活跃</span>
+                    {% elif item.lease.status == 'draft' %}
+                    <span class="badge bg-warning">草稿</span>
+                    {% elif item.lease.status == 'terminated' %}
+                    <span class="badge bg-danger">已终止</span>
+                    {% elif item.lease.status == 'expired' %}
+                    <span class="badge bg-secondary">已过期</span>
+                    {% elif item.lease.status == 'renewed' %}
+                    <span class="badge bg-info">已续签</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="mb-1"><i class="fas fa-map-marker-alt"></i> {{ item.property.city }} {{ item.property.district }} {{ item.property.address }}</p>
+                        <p class="mb-1"><i class="fas fa-user"></i> 房东: {{ item.landlord.username }}</p>
+                        <p class="mb-1"><i class="fas fa-phone"></i> 联系电话: {{ item.landlord.phone or '未提供' }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>租约详情</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>开始日期:</strong></p>
+                                <p>{{ item.lease.start_date.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1"><strong>结束日期:</strong></p>
+                                <p>{{ item.lease.end_date.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>月租金:</strong></p>
+                                <p>¥{{ item.lease.monthly_rent }}</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1"><strong>押金:</strong></p>
+                                <p>¥{{ item.lease.deposit_amount }}</p>
+                            </div>
+                        </div>
+                        <p class="mb-1"><strong>付款日:</strong> 每月{{ item.lease.payment_day }}日</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>签署状态</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>租客签署:</strong></p>
+                                {% if item.lease.tenant_signed %}
+                                <p class="text-success">已签署 ({{ item.lease.tenant_signed_at.strftime('%Y-%m-%d') }})</p>
+                                {% else %}
+                                <p class="text-danger">未签署</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1"><strong>房东签署:</strong></p>
+                                {% if item.lease.landlord_signed %}
+                                <p class="text-success">已签署 ({{ item.lease.landlord_signed_at.strftime('%Y-%m-%d') }})</p>
+                                {% else %}
+                                <p class="text-danger">未签署</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('lease.view_lease', lease_id=item.lease.id) }}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> 查看详情
+                        </a>
+                        {% if item.lease.status == 'draft' and not item.lease.tenant_signed %}
+                        <form method="POST" action="{{ url_for('lease.sign_lease', lease_id=item.lease.id) }}">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-signature"></i> 签署租约
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p class="mb-0">您目前没有任何租约。</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

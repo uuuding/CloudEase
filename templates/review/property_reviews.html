@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}房源评价 - 租房系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="mb-4">房源评价</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <h5 class="mb-0">{{ property.title }}</h5>
+                        <a href="{{ url_for('property.view_property', property_id=property.id) }}" class="btn btn-sm btn-outline-primary ms-auto">
+                            <i class="fas fa-arrow-left"></i> 返回房源
+                        </a>
+                    </div>
+                    <p class="text-muted">{{ property.city }} {{ property.district }} {{ property.address }}</p>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <span class="display-4">{{ "%.1f"|format(avg_rating) }}</span>
+                            <span class="text-muted">/5</span>
+                        </div>
+                        <div>
+                            <div class="mb-1">
+                                {% for i in range(5) %}
+                                    {% if i < avg_rating|int %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% elif i < avg_rating|round(0, 'ceil')|int and i >= avg_rating|int %}
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="mb-0">{{ review_data|length }} 条评价</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if review_data %}
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">全部评价</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for item in review_data %}
+                        <li class="list-group-item p-4">
+                            <div class="d-flex mb-3">
+                                <div class="me-3">
+                                    <img src="{{ url_for('static', filename='uploads/avatars/' + item.reviewer.avatar) if item.reviewer.avatar else url_for('static', filename='img/default_avatar.jpg') }}" 
+                                         class="rounded-circle" width="50" height="50" alt="{{ item.reviewer.username }}">
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ item.reviewer.username }}</h6>
+                                    <div class="text-muted small">
+                                        {{ item.review.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        {% if item.review.updated_at > item.review.created_at %}
+                                        (已编辑)
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="ms-auto">
+                                    <div class="d-flex">
+                                        {% for i in range(5) %}
+                                            {% if i < item.review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="mb-2">{{ item.review.comment }}</p>
+                            
+                            {% if current_user.is_authenticated and (current_user.id == item.reviewer.id or current_user.id == property.owner_id) %}
+                            <div class="d-flex justify-content-end">
+                                {% if current_user.id == item.reviewer.id %}
+                                <a href="{{ url_for('review.edit_review', review_id=item.review.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="fas fa-edit"></i> 编辑
+                                </a>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('review.delete_review', review_id=item.review.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定要删除此评价吗？')">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <p class="mb-0">此房源暂无评价。</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">评分分布</h5>
+                </div>
+                <div class="card-body">
+                    {% for i in range(5, 0, -1) %}
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">{{ i }}星</div>
+                        <div class="progress flex-grow-1" style="height: 10px;">
+                            {% set count = review_data|selectattr('review.rating', 'equalto', i)|list|length %}
+                            {% set percentage = (count / review_data|length * 100) if review_data else 0 %}
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%" 
+                                 aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="ms-2 text-muted small">{{ count }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if current_user.is_authenticated and current_user.is_tenant() %}
+                <div class="card-footer">
+                    <a href="{{ url_for('review.add_review', property_id=property.id) }}" class="btn btn-primary d-block">
+                        <i class="fas fa-star"></i> 添加评价
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

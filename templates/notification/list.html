@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}我的通知 - 租房系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">我的通知</h4>
+                    <div>
+                        <a href="{{ url_for('notification.mark_all_read') }}" class="btn btn-light btn-sm mark-all-read-btn">
+                            <i class="fas fa-check-double"></i> 全部标为已读
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if notifications %}
+                    <ul class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <li class="list-group-item notification-item {% if not notification.is_read %}bg-light{% endif %}">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if notification.type == 'booking_request' %}
+                                    <i class="fas fa-calendar-check text-primary fa-2x"></i>
+                                    {% elif notification.type == 'booking_confirmed' %}
+                                    <i class="fas fa-calendar-check text-success fa-2x"></i>
+                                    {% elif notification.type == 'booking_rejected' %}
+                                    <i class="fas fa-calendar-times text-danger fa-2x"></i>
+                                    {% elif notification.type == 'lease_created' %}
+                                    <i class="fas fa-file-contract text-primary fa-2x"></i>
+                                    {% elif notification.type == 'lease_renewed' %}
+                                    <i class="fas fa-sync text-success fa-2x"></i>
+                                    {% elif notification.type == 'lease_terminated' %}
+                                    <i class="fas fa-file-contract text-danger fa-2x"></i>
+                                    {% elif notification.type == 'payment_reminder' %}
+                                    <i class="fas fa-money-bill-wave text-warning fa-2x"></i>
+                                    {% elif notification.type == 'payment_received' %}
+                                    <i class="fas fa-money-bill-wave text-success fa-2x"></i>
+                                    {% elif notification.type == 'property_review' %}
+                                    <i class="fas fa-star text-warning fa-2x"></i>
+                                    {% else %}
+                                    <i class="fas fa-bell text-secondary fa-2x"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1">{{ notification.title }}</h5>
+                                    <p class="mb-1">{{ notification.content }}</p>
+                                    <small class="text-muted">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </div>
+                                <div class="ms-auto d-flex">
+                                    {% if not notification.is_read %}
+                                    <a href="{{ url_for('notification.mark_read', notification_id=notification.id) }}" class="btn btn-sm btn-outline-primary me-2 mark-read-btn">
+                                        <i class="fas fa-check"></i> 标为已读
+                                    </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('notification.delete_notification', notification_id=notification.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定要删除此通知吗？')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                        <h5>暂无通知</h5>
+                        <p class="text-muted">当有新的预约、租约或消息时，您将在这里收到通知</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

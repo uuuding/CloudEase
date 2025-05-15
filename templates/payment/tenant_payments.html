@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}我的支付 - 云栖CloudEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(26, 115, 232, 0.1);
+        border: none;
+        margin-bottom: 2rem;
+    }
+    .payment-stat {
+        border-radius: 12px;
+        transition: transform 0.3s;
+    }
+    .payment-stat:hover {
+        transform: translateY(-5px);
+    }
+    .section-title {
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        color: var(--primary-color);
+    }
+    .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background-color: var(--primary-color);
+    }
+    .table-hover tbody tr:hover {
+        background-color: var(--light-color);
+    }
+    .badge.bg-primary {
+        background-color: var(--primary-color) !important;
+    }
+    .badge.bg-success {
+        background-color: #34a853 !important;
+    }
+    .badge.bg-danger {
+        background-color: #ea4335 !important;
+    }
+    .badge.bg-info {
+        background-color: var(--accent-color) !important;
+    }
+    .payment-action-btn {
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="section-title">我的支付记录</h1>
+    
+    <div class="card payment-card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>支付统计</h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center g-3">
+                <div class="col-md-3">
+                    <div class="p-3 border rounded payment-stat shadow-sm" style="border-color: var(--primary-color) !important;">
+                        <h3 class="text-primary">{{ payment_data|selectattr('payment.status', 'equalto', 'pending')|list|length }}</h3>
+                        <p class="mb-0"><i class="fas fa-clock me-1"></i>待支付</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded payment-stat shadow-sm" style="border-color: #34a853 !important;">
+                        <h3 class="text-success">{{ payment_data|selectattr('payment.status', 'equalto', 'paid')|list|length }}</h3>
+                        <p class="mb-0"><i class="fas fa-check-circle me-1"></i>已支付</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded payment-stat shadow-sm" style="border-color: #ea4335 !important;">
+                        <h3 class="text-danger">{{ payment_data|selectattr('payment.status', 'equalto', 'overdue')|list|length }}</h3>
+                        <p class="mb-0"><i class="fas fa-exclamation-circle me-1"></i>已逾期</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded payment-stat shadow-sm" style="border-color: var(--accent-color) !important;">
+                        <h3 class="text-info">{{ payment_data|selectattr('payment.status', 'equalto', 'refunded')|list|length }}</h3>
+                        <p class="mb-0"><i class="fas fa-undo me-1"></i>已退款</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">支付列表</h5>
+            <div>
+                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> 打印记录
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if payment_data %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>支付项目</th>
+                            <th>金额</th>
+                            <th>到期日</th>
+                            <th>状态</th>
+                            <th>房源</th>
+                            <th>房东</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in payment_data %}
+                        <tr>
+                            <td>
+                                {% if item.payment.payment_type == 'rent' %}
+                                <span class="badge bg-info">租金</span>
+                                {% elif item.payment.payment_type == 'deposit' %}
+                                <span class="badge bg-warning">押金</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ item.payment.payment_type }}</span>
+                                {% endif %}
+                                {{ item.payment.description or '' }}
+                            </td>
+                            <td>¥{{ item.payment.amount }}</td>
+                            <td>{{ item.payment.due_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                {% if item.payment.status == 'pending' %}
+                                <span class="badge bg-primary">待支付</span>
+                                {% elif item.payment.status == 'paid' %}
+                                <span class="badge bg-success">已支付</span>
+                                <small class="d-block text-muted">{{ item.payment.payment_date.strftime('%Y-%m-%d') if item.payment.payment_date else '' }}</small>
+                                {% elif item.payment.status == 'overdue' %}
+                                <span class="badge bg-danger">已逾期</span>
+                                {% elif item.payment.status == 'cancelled' %}
+                                <span class="badge bg-secondary">已取消</span>
+                                {% elif item.payment.status == 'refunded' %}
+                                <span class="badge bg-info">已退款</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('property.view_property', property_id=item.property.id) }}">
+                                    {{ item.property.title }}
+                                </a>
+                            </td>
+                            <td>{{ item.landlord.username }}</td>
+                            <td>
+                                {% if item.payment.status == 'pending' or item.payment.status == 'overdue' %}
+                                <form method="POST" action="{{ url_for('payment.pay', payment_id=item.payment.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-credit-card"></i> 支付
+                                    </button>
+                                </form>
+                                {% elif item.payment.status == 'paid' %}
+                                <a href="{{ url_for('payment.view_receipt', payment_id=item.payment.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-file-invoice"></i> 查看凭证
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center p-4">
+                <p class="mb-0">暂无支付记录</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

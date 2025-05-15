@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}预约看房 - {{ property.title }} - 云栖CloudEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(26, 115, 232, 0.1);
+        border: none;
+    }
+    .property-info {
+        background-color: var(--light-color);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .property-info i {
+        color: var(--primary-color);
+        width: 20px;
+        text-align: center;
+        margin-right: 5px;
+    }
+    .section-title {
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        color: var(--primary-color);
+    }
+    .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background-color: var(--primary-color);
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card booking-card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">预约看房</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>{{ property.title }}</h5>
+                        <p class="text-muted">{{ property.city }} {{ property.district }} · {{ property.address }}</p>
+                        <div class="d-flex">
+                            <div class="me-3"><i class="fas fa-yuan-sign"></i> {{ property.price }} 元/月</div>
+                            <div class="me-3"><i class="fas fa-vector-square"></i> {{ property.area }} 平方米</div>
+                            <div><i class="fas fa-bed"></i> {{ property.rooms }} 室 {{ property.bathrooms }} 卫</div>
+                        </div>
+                    </div>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.booking_date.label(class="form-label") }}
+                            {{ form.booking_date(class="form-control", type="date") }}
+                            {% if form.booking_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.booking_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">请选择您方便看房的日期</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.booking_time.label(class="form-label") }}
+                            {{ form.booking_time(class="form-control", type="time") }}
+                            {% if form.booking_time.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.booking_time.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">建议在上午9点至下午6点之间选择时间</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.message.label(class="form-label") }}
+                            {{ form.message(class="form-control", rows=3, placeholder="有什么特别的要求或问题可以在这里告诉房东") }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.message.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('property.view_property', property_id=property.id) }}" class="btn btn-outline-secondary">返回房源详情</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

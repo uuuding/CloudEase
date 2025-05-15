@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 云栖CloudEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 6rem 0;
+        margin-bottom: 3rem;
+        border-radius: 12px;
+    }
+    .property-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+    }
+    .property-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(26, 115, 232, 0.15);
+    }
+    .search-box {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    .feature-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    .section-title {
+        position: relative;
+        padding-bottom: 15px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 3px;
+        background-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 英雄区域 -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">探索理想的民宿体验</h1>
+                <p class="lead mb-5">云栖CloudEase为您提供精选民宿，让您的旅行更加舒适惬意。无论是短期度假还是长期居住，都能在这里找到心仪的栖息地。</p>
+            </div>
+            <div class="col-lg-6">
+                <div class="search-box">
+                    <h4 class="text-primary mb-3">寻找您的理想民宿</h4>
+                    <form action="{{ url_for('main.search') }}" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <input type="text" name="keyword" class="form-control" placeholder="关键词搜索">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="city" class="form-control" placeholder="城市">
+                            </div>
+                            <div class="col-md-6">
+                                <select name="property_type" class="form-select">
+                                    <option value="">房源类型</option>
+                                    <option value="apartment">公寓</option>
+                                    <option value="house">独栋别墅</option>
+                                    <option value="townhouse">联排别墅</option>
+                                    <option value="condo">公寓楼</option>
+                                    <option value="studio">单间</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select name="rooms" class="form-select">
+                                    <option value="">房间数</option>
+                                    <option value="1">1室</option>
+                                    <option value="2">2室</option>
+                                    <option value="3">3室</option>
+                                    <option value="4">4室及以上</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100">搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 最新房源 -->
+<section class="container mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>最新房源</h2>
+        <a href="{{ url_for('main.search') }}?sort_by=newest" class="btn btn-outline-primary">查看全部</a>
+    </div>
+    
+    {% if properties %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for property in properties %}
+        <div class="col">
+            <div class="card h-100 property-card">
+                {% if property.images and property.images|length > 0 %}
+                <img src="/static/uploads/{{ property.images[0].filename }}" class="card-img-top" alt="{{ property.title }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ property.title }}</h5>
+                    <p class="card-text text-muted">{{ property.city }} {{ property.district }}</p>
+                    <p class="card-text"><strong>{{ property.price }}</strong> 元/月</p>
+                    <div class="d-flex justify-content-between">
+                        <span>{{ property.area }}平米 | {{ property.rooms }}室</span>
+                        <span class="badge bg-success">可租</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('property.view_property', property_id=property.id) }}" class="btn btn-primary w-100">查看详情</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <p class="mb-0">暂无可用房源。</p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- 云栖特色服务 -->
+<section class="bg-light py-5 mb-5 rounded-3">
+    <div class="container">
+        <h2 class="section-title">云栖特色服务</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-map-marked-alt fa-3x text-primary mb-3"></i>
+                        <h4>景点推荐</h4>
+                        <p>根据您选择的民宿位置，为您推荐周边热门景点和活动，让您的旅行更加丰富多彩。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
+                        <h4>入住指南</h4>
+                        <p>提供详细的入住指南和周边生活设施信息，让您的入住体验更加便捷舒适。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                        <h4>安心保障</h4>
+                        <p>提供全方位的租赁保障，确保您的租赁过程安全无忧，享受高品质的民宿体验。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
