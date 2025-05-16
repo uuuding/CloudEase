@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from models.user import User, UserRole
 from extensions import db, bcrypt
 import os
-from forms.auth import LoginForm, RegisterForm, ProfileForm
+from forms.auth import LoginForm, ChangePasswordForm, RegisterForm, ProfileForm
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -111,19 +111,22 @@ def profile():
 @auth_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    if request.method == 'POST':
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
+
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        # 验证密码长度
+        if len(form.new_password.data) < 6:
+            flash('新密码长度不能少于6个字符', 'danger')
+            return render_template('auth/change_password.html', form=form)
         
-        if not current_user.check_password(current_password):
-            flash('当前密码不正确', 'danger')
-        elif new_password != confirm_password:
-            flash('新密码和确认密码不匹配', 'danger')
-        else:
-            current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
-            db.session.commit()
-            flash('密码已成功更改', 'success')
-            return redirect(url_for('auth.profile'))
-    
-    return render_template('auth/change_password.html')
+        # 验证确认密码
+        if form.new_password.data != form.confirm_password.data:
+            flash('两次输入的密码不一致', 'danger')
+            return render_template('auth/change_password.html', form=form)
+
+        current_user.password_hash = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+        
+        db.session.commit()
+        flash('密码已成功更改', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('auth/change_password.html', form=form)

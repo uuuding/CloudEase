@@ -25,3 +25,8 @@ class ProfileForm(FlaskForm):
     phone = TelField('手机号码', validators=[Regexp(r'^1[3-9]\d{9}$', message='请输入有效的手机号码')])
     avatar = FileField('头像', validators=[FileAllowed(['jpg', 'png', 'jpeg'], '只允许上传图片文件')])
     submit = SubmitField('更新资料')
+
+class ChangePasswordForm(FlaskForm):
+    new_password = PasswordField('新密码', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('确认新密码', validators=[DataRequired(), EqualTo('new_password', message='两次输入的密码必须一致')])
+    submit = SubmitField('更改密码')
